@@ -1,0 +1,143 @@
+=================================================================
+PHISHING AWARENESS TRAINING APPLICATION - API DOCUMENTATION
+=================================================================
+
+## PUBLIC ENDPOINTS (No authentication required)
+
+-------------------------------------------------------------------
+1. VIEW DASHBOARD
+-------------------------------------------------------------------
+URL:         /users
+Method:      GET
+Description: View all captured victims with their data
+Example:     http://localhost:3000/users
+
+-------------------------------------------------------------------
+2. TRACK VICTIM (Secure Token)
+-------------------------------------------------------------------
+URL:         /t/:token
+Method:      GET
+Description: Public phishing link, captures victim data and redirects to dashboard
+Example:     http://localhost:3000/t/SECURE_TOKEN_HERE
+Note:        Token is generated via admin panel
+
+
+=================================================================
+## PROTECTED ENDPOINTS (Require SECRET_KEY)
+=================================================================
+
+-------------------------------------------------------------------
+3. ADMIN PANEL
+-------------------------------------------------------------------
+URL:         /admin?key=YOUR_SECRET_KEY
+Method:      GET
+Description: Web interface to generate links (single or bulk)
+Example:     http://localhost:3000/admin?key=YOUR_SECRET_KEY
+
+Features:
+  - Single user link generation
+  - Bulk generation (paste multiple usernames, one per line)
+  - Copy to clipboard functionality
+  - Download links as TXT file
+
+-------------------------------------------------------------------
+4. GENERATE LINK API
+-------------------------------------------------------------------
+URL:         /generate-link?username=USERNAME&key=YOUR_SECRET_KEY
+Method:      GET
+Description: API endpoint to generate secure tracking link
+Example:     http://localhost:3000/generate-link?username=john.doe&key=YOUR_SECRET_KEY
+
+Response Format (JSON):
+{
+  "token": "SECURE_TOKEN_HERE",
+  "url": "http://localhost:3000/t/SECURE_TOKEN_HERE",
+  "username": "john.doe"
+}
+
+-------------------------------------------------------------------
+5. DELETE ALL USERS (CLEANUP)
+-------------------------------------------------------------------
+URL:         /delete-all?key=YOUR_SECRET_KEY
+Method:      GET
+Description: Delete all captured victims from database
+Example:     http://localhost:3000/delete-all?key=YOUR_SECRET_KEY
+Response:    "Successfully deleted X users"
+
+
+
+=================================================================
+## CAPTURED DATA
+=================================================================
+
+Each victim click automatically captures:
+  ✓ Username
+  ✓ Timestamp
+  ✓ IP Address (handles x-forwarded-for for load balancers/proxies)
+  ✓ User-Agent (browser and device information)
+  ✓ Host header
+  ✓ Referer URL (where they came from)
+
+Multiple clicks from same user are tracked and counted.
+
+
+=================================================================
+## ENVIRONMENT VARIABLES
+=================================================================
+
+Required in .env file:
+
+SECRET_KEY=your_secret_key_here
+MONGO_URI=mongodb://localhost:27017/usersDB    # Optional, defaults to local
+PORT=3000                                       # Optional, defaults to 3000
+
+
+=================================================================
+## TYPICAL WORKFLOW
+=================================================================
+
+1. Generate Links
+   → Visit /admin?key=YOUR_SECRET_KEY
+   → Enter username(s) - single or bulk
+   → Copy generated tracking links
+
+2. Send Phishing Emails
+   → Include generated /t/:token links in emails
+   → Links are secure and user-specific
+
+3. Monitor Victims
+   → Check /users dashboard in real-time
+   → View all captured data per victim
+   → See attempt counts and timestamps
+
+4. Clean Up (Optional)
+   → Use /delete-all?key=YOUR_SECRET_KEY to reset campaign
+
+
+=================================================================
+## SECURITY FEATURES
+=================================================================
+
+✓ HMAC-based token generation (cannot be forged)
+✓ SECRET_KEY required for admin operations
+✓ Rate limiting on tracking endpoints
+✓ Timing-safe key comparison (prevents timing attacks)
+✓ Input validation and sanitization
+✓ No exposed keys in victim-facing URLs
+
+
+=================================================================
+## TOKEN SYSTEM
+=================================================================
+
+Tokens are generated using HMAC-SHA256:
+  - Token = base64(username:HMAC(username, SECRET_KEY))
+  - Each username always generates the same token (deterministic)
+  - Cannot be reverse-engineered without SECRET_KEY
+  - Same user clicking multiple times increments their attempt count
+  - If token is shared, it still tracks the original username
+
+
+=================================================================
+END OF DOCUMENTATION
+=================================================================
