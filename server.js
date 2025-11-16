@@ -3,7 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const crypto = require('crypto');
 const app = express();
@@ -28,22 +27,6 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
   credentials: true
 }));
-
-// Rate limiting
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
-});
-
-const addUserLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit to 20 add-user attempts per 15 minutes
-  message: 'Too many attempts, please try again later.',
-  skipSuccessfulRequests: false
-});
-
-app.use(generalLimiter);
 
 // Basic middleware
 app.use(express.json());
@@ -159,7 +142,7 @@ app.get('/admin', (req, res) => {
           justify-content: center;
         }
         .container {
-          max-width: 600px;
+          max-width: 900px;
           width: 100%;
         }
         h1 {
@@ -199,7 +182,6 @@ app.get('/admin', (req, res) => {
           color: #00ff00;
           font-size: 0.95em;
           font-family: 'Courier New', monospace;
-          transition: all 0.3s ease;
         }
         input:focus {
           outline: none;
@@ -216,7 +198,6 @@ app.get('/admin', (req, res) => {
           font-weight: bold;
           font-family: 'Courier New', monospace;
           cursor: pointer;
-          transition: all 0.3s ease;
           margin-top: 20px;
           text-transform: uppercase;
           letter-spacing: 2px;
@@ -224,9 +205,6 @@ app.get('/admin', (req, res) => {
         button:hover {
           background: #00ff00;
           box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
-        }
-        button:active {
-          transform: scale(0.98);
         }
         #result {
           margin-top: 24px;
@@ -247,6 +225,7 @@ app.get('/admin', (req, res) => {
           font-family: 'Courier New', monospace;
           color: #00ff00;
           word-wrap: break-word;
+          word-break: break-all;
           font-size: 0.8em;
           margin-bottom: 12px;
         }
@@ -283,7 +262,6 @@ app.get('/admin', (req, res) => {
           font-size: 0.9em;
           text-transform: uppercase;
           letter-spacing: 1px;
-          transition: all 0.3s ease;
           margin-top: 0;
           width: auto;
         }
@@ -311,7 +289,6 @@ app.get('/admin', (req, res) => {
           font-family: 'Courier New', monospace;
           resize: vertical;
           min-height: 200px;
-          transition: all 0.3s ease;
         }
         textarea:focus {
           outline: none;
@@ -324,7 +301,7 @@ app.get('/admin', (req, res) => {
           background: #000;
           border: 2px solid #ff0000;
           display: none;
-          max-height: 400px;
+          max-height: 500px;
           overflow-y: auto;
         }
         #bulkResult.show { display: block; }
@@ -345,6 +322,7 @@ app.get('/admin', (req, res) => {
           color: #00ff00;
           font-size: 0.8em;
           word-wrap: break-word;
+          word-break: break-all;
           flex: 1;
         }
         .bulk-item-content {
@@ -374,6 +352,18 @@ app.get('/admin', (req, res) => {
         .action-buttons button {
           flex: 1;
         }
+        #arrayOutput {
+          margin-top: 15px;
+          padding: 12px;
+          background: #0a0a0a;
+          border: 1px solid #00ff00;
+          color: #00ff00;
+          font-size: 0.75em;
+          max-height: 300px;
+          overflow-y: auto;
+          word-wrap: break-word;
+          white-space: pre-wrap;
+        }
       </style>
     </head>
     <body>
@@ -396,7 +386,7 @@ app.get('/admin', (req, res) => {
             <div id="result">
               <div class="result-label">Generated Link</div>
               <div class="result-value"><a href="#" id="linkUrl" target="_blank"></a></div>
-              <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+              <button class="copy-btn" onclick="copyToClipboard('linkUrl')">Copy to Clipboard</button>
             </div>
           </div>
 
@@ -410,16 +400,19 @@ app.get('/admin', (req, res) => {
               <div class="result-label">Generated Links (<span id="linkCount">0</span>)</div>
               <div id="bulkLinkList"></div>
               <div class="action-buttons">
-                <button class="copy-btn" onclick="copyAllLinks()">Copy All Links</button>
+                <button class="copy-btn" onclick="copyAllLinksText()">Copy All Links</button>
+                <button class="copy-btn" onclick="copyArrayOutput()">Copy Array JSON</button>
                 <button class="copy-btn" onclick="downloadLinks()">Download as TXT</button>
               </div>
+              <div class="result-label" style="margin-top: 20px;">Array Output (JSON)</div>
+              <div id="arrayOutput"></div>
             </div>
           </div>
         </div>
       </div>
 
       <script>
-        let bulkLinks = [];
+        let bulkLinksArray = [];
 
         function switchTab(tab) {
           // Update tabs
@@ -454,16 +447,47 @@ app.get('/admin', (req, res) => {
             .catch(err => alert('Error: ' + err));
         }
 
-        function copyToClipboard() {
-          const link = document.getElementById('linkUrl').textContent;
-          navigator.clipboard.writeText(link).then(() => {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✓ COPIED!';
-            setTimeout(() => {
-              btn.textContent = originalText;
-            }, 2000);
-          });
+        function copyToClipboard(elementId) {
+          const element = document.getElementById(elementId);
+          const text = element.textContent || element.innerText;
+          
+          // Try modern clipboard API first
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+              showCopySuccess(event.target);
+            }).catch(err => {
+              console.error('Clipboard API failed:', err);
+              fallbackCopy(text, event.target);
+            });
+          } else {
+            fallbackCopy(text, event.target);
+          }
+        }
+
+        function fallbackCopy(text, button) {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            showCopySuccess(button);
+          } catch (err) {
+            console.error('Fallback copy failed:', err);
+            alert('Copy failed: ' + err.message);
+          }
+          document.body.removeChild(textarea);
+        }
+
+        function showCopySuccess(button) {
+          if (!button) return;
+          const originalText = button.textContent;
+          button.textContent = '✓ COPIED!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 2000);
         }
 
         async function generateBulkLinks() {
@@ -477,7 +501,7 @@ app.get('/admin', (req, res) => {
             return;
           }
 
-          bulkLinks = [];
+          bulkLinksArray = [];
           const listEl = document.getElementById('bulkLinkList');
           listEl.innerHTML = '<div style="color: #888; text-align: center; padding: 20px;">Generating links...</div>';
           document.getElementById('bulkResult').classList.add('show');
@@ -487,14 +511,14 @@ app.get('/admin', (req, res) => {
               const url = 'http://' + window.location.host + '/generate-link?username=' + encodeURIComponent(username) + '&key=${key}';
               const response = await fetch(url);
               const data = await response.json();
-              bulkLinks.push({ username, url: data.url });
+              bulkLinksArray.push({ username: username, url: data.url });
             } catch (err) {
               console.error('Error generating link for ' + username, err);
             }
           }
 
           // Display results
-          listEl.innerHTML = bulkLinks.map((item, index) => \`
+          listEl.innerHTML = bulkLinksArray.map((item, index) => \`
             <div class="bulk-item">
               <div class="bulk-username">\${item.username}</div>
               <div class="bulk-item-content">
@@ -504,35 +528,65 @@ app.get('/admin', (req, res) => {
             </div>
           \`).join('');
 
-          document.getElementById('linkCount').textContent = bulkLinks.length;
+          // Display array output
+          const arrayOutputEl = document.getElementById('arrayOutput');
+          arrayOutputEl.textContent = JSON.stringify(bulkLinksArray, null, 2);
+
+          document.getElementById('linkCount').textContent = bulkLinksArray.length;
         }
 
-        function copyAllLinks() {
-          const text = bulkLinks.map(item => item.url).join('\\n');
-          navigator.clipboard.writeText(text).then(() => {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✓ COPIED!';
-            setTimeout(() => {
-              btn.textContent = originalText;
-            }, 2000);
-          });
+        function copyAllLinksText() {
+          const text = bulkLinksArray.map(item => item.url).join('\\n');
+          
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+              showCopySuccess(event.target);
+            }).catch(err => {
+              console.error('Clipboard API failed:', err);
+              fallbackCopy(text, event.target);
+            });
+          } else {
+            fallbackCopy(text, event.target);
+          }
+        }
+
+        function copyArrayOutput() {
+          const arrayText = JSON.stringify(bulkLinksArray, null, 2);
+          
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(arrayText).then(() => {
+              showCopySuccess(event.target);
+            }).catch(err => {
+              console.error('Clipboard API failed:', err);
+              fallbackCopy(arrayText, event.target);
+            });
+          } else {
+            fallbackCopy(arrayText, event.target);
+          }
         }
 
         function copyIndividualLink(index) {
-          const link = bulkLinks[index].url;
-          navigator.clipboard.writeText(link).then(() => {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.textContent = '✓';
-            setTimeout(() => {
-              btn.textContent = originalText;
-            }, 1500);
-          });
+          const link = bulkLinksArray[index].url;
+          
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link).then(() => {
+              const btn = event.target;
+              const originalText = btn.textContent;
+              btn.textContent = '✓';
+              setTimeout(() => {
+                btn.textContent = originalText;
+              }, 1500);
+            }).catch(err => {
+              console.error('Clipboard API failed:', err);
+              fallbackCopy(link, event.target);
+            });
+          } else {
+            fallbackCopy(link, event.target);
+          }
         }
 
         function downloadLinks() {
-          const text = bulkLinks.map(item => \`\${item.username}: \${item.url}\`).join('\\n');
+          const text = bulkLinksArray.map(item => \`\${item.username}: \${item.url}\`).join('\\n');
           const blob = new Blob([text], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -580,7 +634,7 @@ app.get('/generate-link', (req, res) => {
 });
 
 // Track user via secure token (public endpoint)
-app.get('/t/:token', addUserLimiter, async (req, res) => {
+app.get('/t/:token', async (req, res) => {
   try {
     const { token } = req.params;
 
