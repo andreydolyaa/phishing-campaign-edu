@@ -435,7 +435,7 @@ app.get('/admin', (req, res) => {
             return;
           }
 
-          const url = 'https://' + window.location.host + '/generate-link?username=' + encodeURIComponent(username) + '&key=${key}';
+          const url = window.location.protocol + window.location.host + '/generate-link?username=' + encodeURIComponent(username) + '&key=${key}';
           fetch(url)
             .then(r => r.json())
             .then(data => {
@@ -508,7 +508,7 @@ app.get('/admin', (req, res) => {
 
           for (const username of usernames) {
             try {
-              const url = 'https://' + window.location.host + '/generate-link?username=' + encodeURIComponent(username) + '&key=${key}';
+              const url = window.location.protocol + window.location.host + '/generate-link?username=' + encodeURIComponent(username) + '&key=${key}';
               const response = await fetch(url);
               const data = await response.json();
               bulkLinksArray.push({ username: username, url: data.url });
