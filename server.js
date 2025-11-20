@@ -663,7 +663,7 @@ app.get('/t/:token', async (req, res) => {
       existingUser.clicks.push(clickData);
       await existingUser.save();
       console.log('User re-captured via token - Total clicks:', existingUser.clicks.length);
-      return res.redirect('/users');
+      return res.redirect('https://buyme.co.il');
     }
 
     // Create new user with first click data
@@ -673,7 +673,7 @@ app.get('/t/:token', async (req, res) => {
     });
     await newUser.save();
     console.log('New user captured via token');
-    res.redirect('/users');
+    res.redirect('https://buyme.co.il');
   } catch (err) {
     console.error('Error in token tracking endpoint');
     res.status(500).send('An error occurred while processing your request');
@@ -682,6 +682,12 @@ app.get('/t/:token', async (req, res) => {
 
 // HTML page to list all users (publicly accessible for training demo)
 app.get('/users', async (req, res) => {
+  const { key } = req.query;
+
+  // Validate secret key
+  if (!timingSafeCompare(key, process.env.SECRET_KEY)) {
+    return res.status(403).send('Forbidden: Invalid or missing key');
+  }
   try {
     const users = await User.find().sort({ createdAt: -1 });
     console.log('Fetched users list - count:', users.length);
