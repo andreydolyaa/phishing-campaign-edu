@@ -1,0 +1,279 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier New', monospace;
+  background: #000;
+  color: #00ff00;
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 2em;
+  color: #ff0000;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 20px #ff0000;
+}
+
+.subtitle {
+  text-align: center;
+  color: #00ff00;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.panel {
+  background: #151515;
+  border: 2px solid #00ff00;
+  padding: 30px;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+label {
+  display: block;
+  font-size: 0.8em;
+  color: #888;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  background: #000;
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-size: 0.95em;
+  font-family: 'Courier New', monospace;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ff0000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: #ff0000;
+  border: none;
+  color: #000;
+  font-size: 0.9em;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  margin-top: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+button:hover {
+  background: #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+}
+
+#result {
+  margin-top: 24px;
+  padding: 18px;
+  background: #000;
+  border: 2px solid #ff0000;
+  display: none;
+}
+
+#result.show {
+  display: block;
+}
+
+.result-label {
+  font-size: 0.75em;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.result-value {
+  font-family: 'Courier New', monospace;
+  color: #00ff00;
+  word-wrap: break-word;
+  word-break: break-all;
+  font-size: 0.8em;
+  margin-bottom: 12px;
+}
+
+.result-value a {
+  color: #00ff00;
+  text-decoration: none;
+}
+
+.copy-btn {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 0.75em;
+  margin-top: 0;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+}
+
+.copy-btn:hover {
+  background: #00ff00;
+  color: #000;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #222;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0;
+  width: auto;
+}
+
+.tab.active {
+  color: #00ff00;
+  border-bottom: 2px solid #00ff00;
+}
+
+.tab:hover {
+  color: #00ff00;
+  box-shadow: none;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+textarea {
+  width: 100%;
+  padding: 12px;
+  background: #000;
+  border: 2px solid #00ff00;
+  color: #00ff00;
+  font-size: 0.9em;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  min-height: 200px;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #ff0000;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+#bulkResult {
+  margin-top: 24px;
+  padding: 18px;
+  background: #000;
+  border: 2px solid #ff0000;
+  display: none;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+#bulkResult.show {
+  display: block;
+}
+
+.bulk-item {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #222;
+}
+
+.bulk-item:last-child {
+  border-bottom: none;
+}
+
+.bulk-username {
+  color: #ff0000;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.bulk-link {
+  color: #00ff00;
+  font-size: 0.8em;
+  word-wrap: break-word;
+  word-break: break-all;
+  flex: 1;
+}
+
+.bulk-item-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-item-copy {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 0.7em;
+  margin-top: 0;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  flex-shrink: 0;
+}
+
+.bulk-item-copy:hover {
+  background: #00ff00;
+  color: #000;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.action-buttons button {
+  flex: 1;
+}
+
+#arrayOutput {
+  margin-top: 15px;
+  padding: 12px;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  color: #00ff00;
+  font-size: 0.75em;
+  max-height: 300px;
+  overflow-y: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}

@@ -36,6 +36,9 @@ function createApp() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Serve static files
+  app.use(express.static(path.join(__dirname, '../public')));
+
   // View engine configuration
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '../views'));

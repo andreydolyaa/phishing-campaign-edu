@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin - Link Generator</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎣 ADMIN PANEL</h1>
+    <p class="subtitle">Link Generator</p>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('single')">Single User</button>
+      <button class="tab" onclick="switchTab('bulk')">Bulk Generate</button>
+    </div>
+
+    <div class="panel">
+      <!-- Single User Tab -->
+      <div id="single-tab" class="tab-content active">
+        <label for="username">Target Username</label>
+        <input type="text" id="username" placeholder="john.doe@company.com" autofocus />
+        <button onclick="generateLink()">Generate Link</button>
+
+        <div id="result">
+          <div class="result-label">Generated Link</div>
+          <div class="result-value"><a href="#" id="linkUrl" target="_blank"></a></div>
+          <button class="copy-btn" onclick="copyToClipboard('linkUrl', event)">Copy to Clipboard</button>
+        </div>
+      </div>
+
+      <!-- Bulk Tab -->
+      <div id="bulk-tab" class="tab-content">
+        <label for="usernames">Target Usernames (one per line)</label>
+        <textarea id="usernames" placeholder="john.doe@company.com&#10;jane.smith@company.com&#10;bob.jones@company.com"></textarea>
+        <button onclick="generateBulkLinks()">Generate All Links</button>
+
+        <div id="bulkResult">
+          <div class="result-label">Generated Links (<span id="linkCount">0</span>)</div>
+          <div id="bulkLinkList"></div>
+          <div class="action-buttons">
+            <button class="copy-btn" onclick="copyAllLinksText(event)">Copy All Links</button>
+            <button class="copy-btn" onclick="copyArrayOutput(event)">Copy Array JSON</button>
+            <button class="copy-btn" onclick="downloadLinks()">Download as TXT</button>
+          </div>
+          <div class="result-label" style="margin-top: 20px;">Array Output (JSON)</div>
+          <div id="arrayOutput"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
